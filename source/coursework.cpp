@@ -98,6 +98,11 @@ int main(void)
     // Activate shader
     glUseProgram(shaderID);
 
+    // Add light sources
+    Light lightSources;
+    lightSources.addDirectionalLight(glm::vec3(1.0f, -1.0f, 0.0f),  // direction
+        glm::vec3(1.0f, 1.0f, 0.0f));  // colour
+
     // Load models
     Model obelisk("../assets/cube.obj");
     Model sphere("../assets/sphere.obj");
@@ -111,19 +116,15 @@ int main(void)
     obelisk.ks = 0.0f;
     obelisk.Ns = 20.0f;
 
-    // Add light sources
-    Light lightSources;
-    lightSources.addDirectionalLight(glm::vec3(1.0f, -1.0f, 0.0f),  // direction
-        glm::vec3(1.0f, 1.0f, 0.0f));  // colour
 
-    // Cube positions
+    // obelisk positions
     glm::vec3 positions[] = { //X, Y, Z
-        glm::vec3(0.0f,  0.0f, 1.0f),
-        glm::vec3(-1.0f,  0.0f,  0.5f),
-        glm::vec3(-1.0f,  0.0f,  -0.5f),
-        glm::vec3(0.0f,  0.0f,  -1.0f),
-        glm::vec3(1.0f,  0.0f,  -0.5f),
-        glm::vec3(1.0f,  0.0f,  0.5f),
+        glm::vec3(0.0f,  0.0f, 4.0f),
+        glm::vec3(-4.0f,  0.0f,  2.0f),
+        glm::vec3(-4.0f,  0.0f,  -2.0f),
+        glm::vec3(0.0f,  0.0f,  -4.0f),
+        glm::vec3(4.0f,  0.0f,  -2.0f),
+        glm::vec3(4.0f,  0.0f,  2.0f),
     };
 
     // Load a 2D plane model for the floor and add textures
@@ -137,6 +138,25 @@ int main(void)
     floor.kd = 1.0f;
     floor.ks = 1.0f;
     floor.Ns = 20.0f;
+
+    // Add light sources
+    //Light lightSources;
+    lightSources.addPointLight(glm::vec3(2.0f, 2.0f, 2.0f),         // position
+        glm::vec3(1.0f, 1.0f, 1.0f),         // colour
+        1.0f, 0.1f, 0.02f);                  // attenuation
+
+    lightSources.addPointLight(glm::vec3(1.0f, 1.0f, -8.0f),        // position
+        glm::vec3(1.0f, 1.0f, 1.0f),         // colour
+        1.0f, 0.1f, 0.02f);                  // attenuation
+
+    lightSources.addSpotLight(glm::vec3(0.0f, 3.0f, 0.0f),          // position
+        glm::vec3(0.0f, -1.0f, 0.0f),         // direction
+        glm::vec3(1.0f, 1.0f, 1.0f),          // colour
+        1.0f, 0.1f, 0.02f,                    // attenuation
+        std::cos(Maths::radians(45.0f)));     // cos(phi)
+
+    lightSources.addDirectionalLight(glm::vec3(1.0f, -1.0f, 0.0f),  // direction
+        glm::vec3(1.0f, 1.0f, 0.0f));  // colour
 
     // Add teapots to objects vector
     std::vector<Object> objects;
@@ -152,7 +172,7 @@ int main(void)
     }
 
     object.name = "floor"; //init floor obj
-    for (unsigned int i = 0; i < 10; i++)
+    for (unsigned int i = 0; i < 1; i++)
     {
         // Add floor model to objects vector
         object.position = glm::vec3(0.0f, -0.85f, 0.0f);
@@ -237,19 +257,23 @@ void keyboardInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    float speed = 1;
 
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        speed = 5;
+    else speed = 1;
     // Move the camera using WSAD keys
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.eye += 2.0f * deltaTime * camera.front; //value controls speed of camera
+        camera.eye += 2.0f * deltaTime * camera.front * speed; //value controls speed of camera
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.eye -= 2.0f * deltaTime * camera.front;
+        camera.eye -= 2.0f * deltaTime * camera.front * speed;
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.eye -= 2.0f * deltaTime * camera.right;
+        camera.eye -= 2.0f * deltaTime * camera.right * speed;
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.eye += 2.0f * deltaTime * camera.right;
+        camera.eye += 2.0f * deltaTime * camera.right * speed;
 }
 
 void mouseInput(GLFWwindow* window)
