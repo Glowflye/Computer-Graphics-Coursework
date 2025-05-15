@@ -20,7 +20,7 @@ float previousTime = 0.0f;  // time of previous iteration of the loop
 float deltaTime = 0.0f;  // time elapsed since the previous frame
 
 // Create camera object
-Camera camera(glm::vec3(0.0f, 0.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
 // Object struct
 struct Object
@@ -31,6 +31,12 @@ struct Object
     float angle = 0.0f;
     std::string name;
 };
+
+//Position Vector
+glm::vec3 positionVector;
+
+//Bools
+bool centralised = false;
 
 int main(void)
 {
@@ -54,7 +60,7 @@ int main(void)
 
     // Open a window and create its OpenGL context
     GLFWwindow* window;
-    window = glfwCreateWindow(1024, 768, "Lab10 Quaternions", NULL, NULL);
+    window = glfwCreateWindow(1024, 768, "Obelisks", NULL, NULL);
 
     if (window == NULL) {
         fprintf(stderr, "Failed to open GLFW window.\n");
@@ -98,24 +104,24 @@ int main(void)
     // Activate shader
     glUseProgram(shaderID);
 
-    // Add light sources
-    Light lightSources;
-    lightSources.addDirectionalLight(glm::vec3(1.0f, -1.0f, 0.0f),  // direction
-        glm::vec3(1.0f, 1.0f, 0.0f));  // colour
-
     // Load models
     Model obelisk("../assets/cube.obj");
     Model sphere("../assets/sphere.obj");
+    Model collisionBox("../assets/cube.obj");
+    Model platform("../assets/cube.obj");
 
     // Load the textures
     obelisk.addTexture("../assets/stones_diffuse.png", "diffuse");
 
-    // Define cube object lighting properties
-    obelisk.ka = 1.0f;
-    obelisk.kd = 0.0f;
-    obelisk.ks = 0.0f;
-    obelisk.Ns = 20.0f;
+    platform.addTexture("../assets/neutral_specular.png", "specular");
+    platform.addTexture("../assets/bricks_diffuse.png", "diffuse");
+    platform.addTexture("../assets/bricks_normal.png", "normal");
 
+    // Define cube object lighting properties
+    obelisk.ka = 0.2f;
+    obelisk.kd = 1.0f;
+    obelisk.ks = 1.0f;
+    obelisk.Ns = 20.0f;
 
     // obelisk positions
     glm::vec3 positions[] = { //X, Y, Z
@@ -139,28 +145,48 @@ int main(void)
     floor.ks = 1.0f;
     floor.Ns = 20.0f;
 
-    // Add light sources
-    //Light lightSources;
-    lightSources.addPointLight(glm::vec3(2.0f, 2.0f, 2.0f),         // position
-        glm::vec3(1.0f, 1.0f, 1.0f),         // colour
-        1.0f, 0.1f, 0.02f);                  // attenuation
+    //Define platform props
+    platform.ka = 0.2f;
+    platform.kd = 1.0f;
+    platform.ks = 1.0f;
+    platform.Ns = 20.0f;
 
-    lightSources.addPointLight(glm::vec3(1.0f, 1.0f, -8.0f),        // position
-        glm::vec3(1.0f, 1.0f, 1.0f),         // colour
-        1.0f, 0.1f, 0.02f);                  // attenuation
+    // Add light sources
+    Light lightSources;
+    //lightSources.addPointLight(glm::vec3(2.0f, 2.0f, 2.0f),         // position
+//                           glm::vec3(1.0f, 1.0f, 1.0f),         // colour
+//                           1.0f, 0.1f, 0.02f);                  // attenuation
+//
+//lightSources.addPointLight(glm::vec3(1.0f, 1.0f, -8.0f),        // position
+//                           glm::vec3(1.0f, 1.0f, 1.0f),         // colour
+//                           1.0f, 0.1f, 0.02f);                  // attenuation
 
     lightSources.addSpotLight(glm::vec3(0.0f, 3.0f, 0.0f),          // position
         glm::vec3(0.0f, -1.0f, 0.0f),         // direction
         glm::vec3(1.0f, 1.0f, 1.0f),          // colour
         1.0f, 0.1f, 0.02f,                    // attenuation
-        std::cos(Maths::radians(45.0f)));     // cos(phi)
+        std::cos(Maths::radians(60.0f)));     // cos(phi)
 
-    lightSources.addDirectionalLight(glm::vec3(1.0f, -1.0f, 0.0f),  // direction
-        glm::vec3(1.0f, 1.0f, 0.0f));  // colour
+    //lightSources.addDirectionalLight(glm::vec3(1.0f, -1.0f, 0.0f),  // direction
+    //                                 glm::vec3(1.0f, 1.0f, 0.0f));  // colour
 
     // Add teapots to objects vector
     std::vector<Object> objects;
     Object object;
+
+    //Platform
+    object.name = "platform";
+    object.position = glm::vec3(0, -0.8f, 0);
+    object.scale = glm::vec3(1.0f, 0.2f, 1.0f);
+    objects.push_back(object);
+
+    //Collision Box
+    object.name = "collisionBox";
+    object.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    object.scale = glm::vec3(0.2f, 0.5f, 0.2f);
+    //object.angle = Maths::radians(60.0f * i);
+    objects.push_back(object);
+
     object.name = "obelisk";
     for (unsigned int i = 0; i < 6; i++) //change 1 later
     {
@@ -186,6 +212,7 @@ int main(void)
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
+        camera.eye.y = 0.0f;
         // Update timer
         float time = glfwGetTime();
         deltaTime = time - previousTime;
@@ -196,7 +223,7 @@ int main(void)
         mouseInput(window);
 
         // Clear the window
-        glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Calculate view and projection matrices
@@ -209,8 +236,10 @@ int main(void)
         // Send light source properties to the shader
         lightSources.toShader(shaderID, camera.view);
 
-        // Send view matrix to the shader
-        glUniformMatrix4fv(glGetUniformLocation(shaderID, "V"), 1, GL_FALSE, &camera.view[0][0]);
+        //Get position
+
+        //// Send view matrix to the shader
+        //glUniformMatrix4fv(glGetUniformLocation(shaderID, "V"), 1, GL_FALSE, &camera.view[0][0]);
 
         // Loop through objects
         for (unsigned int i = 0; i < static_cast<unsigned int>(objects.size()); i++)
@@ -228,11 +257,54 @@ int main(void)
             glUniformMatrix4fv(glGetUniformLocation(shaderID, "MV"), 1, GL_FALSE, &MV[0][0]);
 
             // Draw the model
+            if (objects[i].name == "collisionBox")
+            {
+                objects[i].position = camera.eye;
+                positionVector = objects[i].position;
+                if (positionVector.x >= -1 && positionVector.x <= 1 &&
+                    positionVector.z >= -1 && positionVector.z <= 1) {
+                    centralised = true;
+                }
+                else
+                {
+                    centralised = false;
+                }
+            }
             if (objects[i].name == "obelisk")
-                obelisk.draw(shaderID);
+            {
+                if (objects[i].position.x + 2.5f > positionVector.x &&
+                    objects[i].position.x - 2.5f < positionVector.x &&
+                    objects[i].position.z + 2.5f > positionVector.z &&
+                    objects[i].position.z - 2.5f < positionVector.z)
+                {
 
-            if (objects[i].name == "floor")
-                floor.draw(shaderID);
+                    if (objects[i].position.y < 3)
+                    {
+                        objects[i].position = glm::vec3(objects[i].position.x, objects[i].position.y += 0.005f, objects[i].position.z);
+                    }
+                }
+                else if (objects[i].position.y > 0)
+                {
+                    objects[i].position.y = objects[i].position.y - 0.005f;
+                }
+                //Maths::translate(object.position)#
+                obelisk.draw(shaderID);
+                //object.position.y = -10;
+            }
+        if (objects[i].name == "floor")
+        {
+            floor.draw(shaderID);
+        }
+        if (objects[i].name == "platform") {
+            platform.draw(shaderID);
+        }
+        }
+
+        if (centralised == true) {
+            lightSources.activated();
+        }
+        else {
+            lightSources.deactivated();
         }
 
         // Draw light sources
@@ -244,7 +316,7 @@ int main(void)
     }
 
     // Cleanup
-    obelisk.deleteBuffers();
+    //obelisk.deleteBuffers();
     floor.deleteBuffers();
     glDeleteProgram(shaderID);
 

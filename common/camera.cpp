@@ -24,8 +24,8 @@ void Camera::calculateMatrices()
 void Camera::calculateCameraVectors()
 {
     front = glm::vec3(cos(yaw) * cos(pitch), sin(pitch), sin(yaw) * cos(pitch));
-    right = glm::normalize(glm::cross(front, worldUp));
-    up = glm::cross(right, front);
+    right = glm::normalize(Maths::cross(front, worldUp));
+    up = Maths::cross(right, front);
 }
 
 void Camera::quaternionCamera()

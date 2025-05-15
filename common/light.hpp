@@ -36,4 +36,8 @@ public:
 
     // Draw light source
     void draw(unsigned int shaderID, glm::mat4 view, glm::mat4 projection, Model lightModel);
+
+    void activated();
+
+    void deactivated();
 };

@@ -104,3 +104,13 @@ Quaternion Maths::SLERP(Quaternion q1, Quaternion q2, const float t)
 
     return q;
 }
+
+float Maths::dot(glm::vec3 a, glm::vec3 b) {
+    float product = (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
+    return product;
+}
+
+glm::vec3 Maths::cross(glm::vec3 a, glm::vec3 b) {
+    glm::vec3 product = glm::vec3((a.y * b.z) - (a.z * b.y), (a.z * b.z) - (a.x * b.z), (a.x * b.y) - (a.y * b.x));
+    return product;
+}

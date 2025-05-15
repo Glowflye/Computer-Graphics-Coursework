@@ -34,4 +34,8 @@ public:
     static glm::mat4 rotate(const float& angle, glm::vec3 v);
 
     static Quaternion SLERP(const Quaternion q1, const Quaternion q2, const float t);
+
+    static float dot(glm::vec3, glm::vec3);
+
+    static glm::vec3 cross(glm::vec3, glm::vec3);
 };

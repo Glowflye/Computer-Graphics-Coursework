@@ -86,3 +86,22 @@ void Light::draw(unsigned int shaderID, glm::mat4 view, glm::mat4 projection, Mo
         lightModel.draw(shaderID);
     }
 }
+
+void Light::activated() {
+    for (unsigned int i = 0; i < static_cast<unsigned int>(lightSources.size()); i++)
+    {
+        if (lightSources[i].type == 2) {
+            lightSources[i].colour = glm::vec3(1.0f, 0.0f, 0.0f);
+        }
+    }
+}
+
+void Light::deactivated() {
+    for (unsigned int i = 0; i < static_cast<unsigned int>(lightSources.size()); i++)
+    {
+        if (lightSources[i].type == 2) {
+            lightSources[i].colour = glm::vec3(1.0f, 1.0f, 1.0f);
+        }
+    }
+}
+
