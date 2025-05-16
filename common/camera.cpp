@@ -8,17 +8,14 @@ Camera::Camera(const glm::vec3 Eye, const glm::vec3 Target)
 
 void Camera::calculateMatrices()
 {
-    //// Calculate the view matrix
-    //view = glm::lookAt(eye, target, worldUp);
-
-    // Calculate camera vectors - ADDED
+    // Calculate camera vectors
     calculateCameraVectors();
 
-    // Calculate the view matrix - ADDED
-    view = glm::lookAt(eye, eye + front, worldUp);
+    // Calculate the view matrix
+    view = orientation.matrix() * Maths::translate(-eye);
 
     // Calculate the projection matrix
-    projection = glm::perspective(fov, aspect, near, far);
+    projection = Camera::perspective(fov, aspect, near, far);
 }
 
 void Camera::calculateCameraVectors()
@@ -31,8 +28,6 @@ void Camera::calculateCameraVectors()
 void Camera::quaternionCamera()
 {
     // Calculate camera orientation quaternion from the Euler angles
-    /*Quaternion orientation(-pitch, yaw);*/
-    // Calculate camera orientation quaternion from the Euler angles
     Quaternion newOrientation(-pitch, yaw);
 
     // Apply SLERP
@@ -42,10 +37,30 @@ void Camera::quaternionCamera()
     view = orientation.matrix() * Maths::translate(-eye);
 
     // Calculate the projection matrix
-    projection = glm::perspective(fov, aspect, near, far);
+    projection = Camera::perspective(fov, aspect, near, far);
 
     // Calculate camera vectors from view matrix
     right = glm::vec3(view[0][0], view[1][0], view[2][0]);
     up = glm::vec3(view[0][1], view[1][1], view[2][1]);
     front = -glm::vec3(view[0][2], view[1][2], view[2][2]);
 }
+
+glm::mat4 Camera::perspective(float fov, float aspect, float near, float far)
+{
+    float top = near * (tan(fov / 2));
+    float bottom = -top;
+    float right = aspect * top;
+    float left = -right;
+
+    glm::mat4 projectionMatrix = {};
+    projectionMatrix[0][0] = near / right;
+    projectionMatrix[1][1] = near / top;
+    projectionMatrix[2][2] = -(far + near) / (far - near);
+    projectionMatrix[2][3] = -1.0f;
+    projectionMatrix[3][2] = -(2 * far * near) / (far - near);
+
+    return projectionMatrix;
+}
+
+//NO GLM LEFT
+

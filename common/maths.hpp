@@ -38,4 +38,6 @@ public:
     static float dot(glm::vec3, glm::vec3);
 
     static glm::vec3 cross(glm::vec3, glm::vec3);
+
+    static int length(glm::vec3);
 };

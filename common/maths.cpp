@@ -114,3 +114,5 @@ glm::vec3 Maths::cross(glm::vec3 a, glm::vec3 b) {
     glm::vec3 product = glm::vec3((a.y * b.z) - (a.z * b.y), (a.z * b.z) - (a.x * b.z), (a.x * b.y) - (a.y * b.x));
     return product;
 }
+
+//int length(glm::vec3 list)

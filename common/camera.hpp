@@ -44,4 +44,8 @@ public:
     void calculateMatrices();
 
     void calculateCameraVectors();
+
+    void lookAt();
+
+    glm::mat4 perspective(float, float, float, float);
 };
