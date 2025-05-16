@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cmath>
-
+#include <array>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/random.hpp>
@@ -159,21 +159,24 @@ int main(void)
     // Add light sources
     Light lightSources;
 
-    bool xPos[6] { 0.0f, -4.0f, -4.0f, 0.0f, 4.0f, 4.0f};
-    bool zPos[6]{ 4.0f, 2.0f, -2.0f, -4.0f, -2.0f, 2.0f };
-
-    for (int i = 0; i < 6; i++) {
-        lightSources.addPointLight(glm::vec3(xPos[i], 7, zPos[i]),      // position
-            glm::vec3(1.0f, 1.0f, 0.0f),         // colour
-            0.02f, 0.02f, 0.02f);                  // attenuation
-    }
-
     lightSources.addSpotLight(glm::vec3(0.0f, 3.0f, 0.0f),          // position
         glm::vec3(0.0f, -1.0f, 0.0f),         // direction
         glm::vec3(1.0f, 1.0f, 1.0f),          // colour
-        1.0f, 0.1f, 0.02f,                    // attenuation
+        1.0f, 0.8f, 0.02f,                    // attenuation
         std::cos(Maths::radians(60.0f)));     // cos(phi)
 
+    std::array<int, 6> xPos = { 0.0f, -4.0f, -4.0f, 0.0f, 4.0f, 4.0f };
+    std::array<int, 6> zPos = { 4.0f, 2.0f, -2.0f, -4.0f, -2.0f, 2.0f };
+
+
+    for (int i = 0; i < 6; i++) {
+        lightSources.addPointLight(glm::vec3((xPos[i]), -30, (zPos[i])),      // position
+            glm::vec3(0.0f, 1.0f, 1.0f),         // colour
+            0.002f, 20.0f, 0.002f);                  // attenuation
+
+        std::cout << xPos[i];
+    }
+    
     //lightSources.addDirectionalLight(glm::vec3(1.0f, -1.0f, 0.0f),  // direction
     //                                 glm::vec3(1.0f, 1.0f, 0.0f));  // colour
 
@@ -306,24 +309,13 @@ int main(void)
             platform.draw(shaderID);
         }
         }
-
-        //if (centralised == true) {
-        //    lightSources.activated();
-        //    if (currentNum != targetNum) {
-        //        lightSources.addPointLight(glm::vec3(glm::linearRand(-10.0f, 10.0f), 10.0f, glm::linearRand(-10.0f, 10.0f)),        // position
-        //            glm::vec3(1.0f, 0.0f, 0.0f),         // colour
-        //            0.02f, 0.02f, 0.02f);                  // attenuation
-
-        //        targetNum += 10;
-        //    }
-        //    else {
-        //        currentNum += 0.00005;
-        //    }
-        //}
-        //else {
-        //    lightSources.deactivated();
-        //}
-
+        if (centralised == true) {
+            lightSources.activated();
+        }
+        else
+        {
+            lightSources.deactivated();
+        }
         // Draw light sources
         lightSources.draw(lightShaderID, camera.view, camera.projection, sphere);
 
@@ -331,7 +323,8 @@ int main(void)
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        std::cout << lightSources.lightSources.size();
+        //std::cout << lightSources.lightSources.size();
+        //std::cout << lightSources.lightSources[4].position;
     }
 
     // Cleanup

@@ -40,4 +40,6 @@ public:
     void activated();
 
     void deactivated();
+
+    //void pointLightCirculate(glm::vec3);
 };

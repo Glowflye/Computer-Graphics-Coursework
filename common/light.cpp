@@ -2,6 +2,8 @@
 #include <common/maths.hpp>
 
 bool active = false;
+int upOrDown = 5;
+int reached = 0;
 
 void Light::addPointLight(const glm::vec3 position, const glm::vec3 colour,
     const float constant, const float linear,
@@ -97,6 +99,10 @@ void Light::activated() {
         if (lightSources[i].type == 2) {
             lightSources[i].colour = glm::vec3(1.0f, 0.0f, 0.0f);
         }
+        else if (lightSources[i].position.y < 3) {
+            lightSources[i].position = glm::vec3(lightSources[i].position.x, lightSources[i].position.y + 0.025f, lightSources[i].position.z);
+            lightSources[i].linear = 5.8f;
+        }
     }
 }
 
@@ -108,13 +114,28 @@ void Light::deactivated() {
             lightSources[i].colour = glm::vec3(1.0f, 1.0f, 1.0f);
         }
         if (lightSources[i].type == 1) {
-            
-            lightSources.erase(lightSources.begin() + i);
-            //lightSources.erase(lightSources.begin() + i);
+            if (lightSources[i].position.y > -10) {
+                lightSources[i].position = glm::vec3(lightSources[i].position.x, lightSources[i].position.y - 0.05f, lightSources[i].position.z);
+                //lightSources[i].constant = 1.0f;
+                lightSources[i].linear = 20.8f;
+                //lightSources[i].quadratic = 0.02f;
+            }
+            //if (lightSources[i].position.x)
         }
-        std::cout << lightSources.size();
     }
 }
+
+//void Light::pointLightCirculate(glm::vec3 position) {
+//    switch (position) {
+//        case (0.0f, 3.0f, 4.0f) {
+//
+//        }
+//    }
+//
+//}
+//
+//std::array<int, 6> xPos = { 0.0f, -4.0f, -4.0f, 0.0f, 4.0f, 4.0f };
+//std::array<int, 6> zPos = { 4.0f, 2.0f, -2.0f, -4.0f, -2.0f, 2.0f };
 
 //NO GLM LEFT
 
