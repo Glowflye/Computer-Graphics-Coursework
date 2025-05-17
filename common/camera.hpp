@@ -37,6 +37,8 @@ public:
 
     void quaternionCamera();
 
+    void thirdPersonCamera();
+
     // Constructor
     Camera(const glm::vec3 eye, const glm::vec3 target);
 

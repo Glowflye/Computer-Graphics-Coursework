@@ -12,7 +12,8 @@ void Camera::calculateMatrices()
     calculateCameraVectors();
 
     // Calculate the view matrix
-    view = orientation.matrix() * Maths::translate(-eye);
+    //view = orientation.matrix() * Maths::translate(-eye);
+    view = Maths::lookAt(eye, eye + front, worldUp);
 
     // Calculate the projection matrix
     projection = Camera::perspective(fov, aspect, near, far);
@@ -21,7 +22,7 @@ void Camera::calculateMatrices()
 void Camera::calculateCameraVectors()
 {
     front = glm::vec3(cos(yaw) * cos(pitch), sin(pitch), sin(yaw) * cos(pitch));
-    right = glm::normalize(Maths::cross(front, worldUp));
+    right = Maths::normalise(Maths::cross(front, worldUp));
     up = Maths::cross(right, front);
 }
 
@@ -60,6 +61,27 @@ glm::mat4 Camera::perspective(float fov, float aspect, float near, float far)
     projectionMatrix[3][2] = -(2 * far * near) / (far - near);
 
     return projectionMatrix;
+}
+
+void Camera::thirdPersonCamera() {
+    glm::vec3 offset = glm::vec3(0.0f, -1.0f, -3.0f);
+
+    // Calculate camera orientation quaternion from the Euler angles
+    Quaternion newOrientation(-pitch, yaw);
+
+    // Apply SLERP
+    orientation = Maths::SLERP(orientation, newOrientation, 0.2f);
+
+    // Calculate the view matrix
+    view = orientation.matrix() * Maths::translate(-eye + offset);
+
+    // Calculate the projection matrix
+    projection = Camera::perspective(fov, aspect, near, far);
+
+    // Calculate camera vectors from view matrix
+    right = glm::vec3(view[0][0], view[1][0], view[2][0]);
+    up = glm::vec3(view[0][1], view[1][1], view[2][1]);
+    front = -glm::vec3(view[0][2], view[1][2], view[2][2]);
 }
 
 //NO GLM LEFT

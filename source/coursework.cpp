@@ -42,6 +42,12 @@ bool centralised = false;
 //Ints
 int currentNum = 0;
 int targetNum = 10;
+int useThirdPerson = 0;
+int upPressed = 0;
+int downPressed = 0;
+int leftPressed = 0;
+int rightPressed = 0;
+int lastPressed = 0;
 
 int main(void)
 {
@@ -144,6 +150,8 @@ int main(void)
     floor.addTexture("../assets/stones_normal.png", "normal");
     floor.addTexture("../assets/stones_specular.png", "specular");
 
+    collisionBox.addTexture("../assets/stones_normal.png", "normal");
+
     // Define floor light properties
     floor.ka = 0.2f;
     floor.kd = 1.0f;
@@ -160,10 +168,10 @@ int main(void)
     Light lightSources;
 
     lightSources.addSpotLight(glm::vec3(0.0f, 3.0f, 0.0f),          // position
-        glm::vec3(0.0f, -1.0f, 0.0f),         // direction
-        glm::vec3(1.0f, 1.0f, 1.0f),          // colour
-        1.0f, 0.8f, 0.02f,                    // attenuation
-        std::cos(Maths::radians(60.0f)));     // cos(phi)
+        glm::vec3(0.0f, -1.0f, 0.0f),                               // direction
+        glm::vec3(1.0f, 1.0f, 1.0f),                                // colour
+        1.0f, 0.8f, 0.02f,                                          // attenuation
+        std::cos(Maths::radians(60.0f)));                           // cos(phi)
 
     std::array<int, 6> xPos = { 0.0f, -4.0f, -4.0f, 0.0f, 4.0f, 4.0f };
     std::array<int, 6> zPos = { 4.0f, 2.0f, -2.0f, -4.0f, -2.0f, 2.0f };
@@ -171,10 +179,8 @@ int main(void)
 
     for (int i = 0; i < 6; i++) {
         lightSources.addPointLight(glm::vec3((xPos[i]), -30, (zPos[i])),      // position
-            glm::vec3(0.0f, 1.0f, 1.0f),         // colour
-            0.002f, 20.0f, 0.002f);                  // attenuation
-
-        std::cout << xPos[i];
+            glm::vec3(0.0f, 1.0f, 1.0f),                                      // colour
+            0.002f, 20.0f, 0.002f);                                           // attenuation
     }
     
     //lightSources.addDirectionalLight(glm::vec3(1.0f, -1.0f, 0.0f),  // direction
@@ -228,6 +234,11 @@ int main(void)
         deltaTime = time - previousTime;
         previousTime = time;
 
+        
+        //std::cout << glm::normalize((0.43f, 64.4, -1.434));
+        //std::cout << Maths::normalise(glm::vec3(0.43f, 64.4f, -1.434f));
+
+
         // Get inputs
         keyboardInput(window);
         mouseInput(window);
@@ -238,7 +249,13 @@ int main(void)
 
         // Calculate view and projection matrices
         camera.target = camera.eye + camera.front;
-        camera.quaternionCamera();
+        if (useThirdPerson == 0)
+        {
+            camera.quaternionCamera();
+        }
+        else {
+            camera.thirdPersonCamera();
+        }
 
         // Activate shader
         glUseProgram(shaderID);
@@ -271,8 +288,8 @@ int main(void)
             {
                 objects[i].position = camera.eye;
                 positionVector = objects[i].position;
-                if (positionVector.x >= -1 && positionVector.x <= 1 &&
-                    positionVector.z >= -1 && positionVector.z <= 1) {
+                if (positionVector.x >= -0.9f && positionVector.x <= 0.9f &&
+                    positionVector.z >= -0.9f && positionVector.z <= 0.9f) {
                     centralised = true;
                 }
                 else
@@ -297,15 +314,46 @@ int main(void)
                 {
                     objects[i].position.y = objects[i].position.y - 0.005f;
                 }
-                //Maths::translate(object.position)#
                 obelisk.draw(shaderID);
-                //object.position.y = -10;
             }
         if (objects[i].name == "floor")
         {
             floor.draw(shaderID);
         }
-        if (objects[i].name == "platform") {
+        if (objects[i].name == "platform")
+        {
+            if ((objects[i].position.x + 1.0f > positionVector.x &&
+                objects[i].position.x - 1.0f < positionVector.x &&
+                objects[i].position.z + 1.0f > positionVector.z &&
+                objects[i].position.z - 1.0f < positionVector.z))
+            {
+                //switch (lastPressed) {
+                //case 0:
+                //    camera.eye -= camera.front * 0.005f;
+                //    break;
+                //case 1:
+                //    camera.eye += camera.front * 0.005f;
+                //    break;
+                //case 2:
+                //    camera.eye += camera.right * 0.005f;
+                //    break;
+                //case 3:
+                //    camera.eye -= camera.right * 0.005f;
+                //    break;
+                //}  
+                if (upPressed == 1) {
+                    camera.eye -= camera.front * 0.01f, camera.up - 1.0f;
+                }
+                if (downPressed == 1) {
+                    camera.eye += camera.front * 0.01f, camera.up - 1.0f;
+                }
+                if (leftPressed == 1) {
+                    camera.eye += camera.right * 0.01f, camera.up - 1.0f;
+                }
+                if (rightPressed == 1) {
+                    camera.eye -= camera.right * 0.01f, camera.up - 1.0f;
+                }
+            }
             platform.draw(shaderID);
         }
         }
@@ -319,10 +367,18 @@ int main(void)
         // Draw light sources
         lightSources.draw(lightShaderID, camera.view, camera.projection, sphere);
 
+        if (camera.pitch > 1.20f) {
+            camera.pitch = 1.20f;
+        }
+        else if (camera.pitch < -0.5f) {
+            camera.pitch = -0.5f;
+        }
+
         // Swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
 
+        std::cout << camera.pitch;
         //std::cout << lightSources.lightSources.size();
         //std::cout << lightSources.lightSources[4].position;
     }
@@ -346,18 +402,62 @@ void keyboardInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         speed = 5;
     else speed = 1;
+
     // Move the camera using WSAD keys
+
+    //W - FORWARDS
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.eye += 2.0f * deltaTime * camera.front * speed; //value controls speed of camera
+    {
+        if (!downPressed) {
+            camera.eye += 2.0f * deltaTime * camera.front * speed; //value controls speed of camera
+            upPressed = 1;
+        }
+        lastPressed = 0;
+    }
+    else {
+        upPressed = 0;
+    }
 
+    //S - BACKWARDS
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.eye -= 2.0f * deltaTime * camera.front * speed;
+    {
+        if (!upPressed) {
+            camera.eye -= 2.0f * deltaTime * camera.front * speed;
+            downPressed = 1;
+        }
+        lastPressed = 1;
+    }
+    else {
+        downPressed = 0;
+    }
 
+    //A - LEFT
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
         camera.eye -= 2.0f * deltaTime * camera.right * speed;
+        leftPressed = 1;
+        lastPressed = 2;
+    }
+    else {
+        leftPressed = 0;
+    }
 
+    //D - RIGHT
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
         camera.eye += 2.0f * deltaTime * camera.right * speed;
+        rightPressed = 1;
+        lastPressed = 3;
+    }
+    else {
+        rightPressed = 0;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+        useThirdPerson = 0;
+
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+        useThirdPerson = 1;
 }
 
 void mouseInput(GLFWwindow* window)
@@ -370,6 +470,13 @@ void mouseInput(GLFWwindow* window)
     // Update yaw and pitch angles
     camera.yaw += 0.005f * float(xPos - 1024 / 2);
     camera.pitch += 0.005f * float(768 / 2 - yPos);
+
+    if (camera.pitch > 0.5f) {
+        camera.pitch == 0.5f;
+    }
+    else if (camera.pitch < -0.4f) {
+        camera.pitch == -0.4f;
+    }
 
     // Calculate camera vectors from the yaw and pitch angles
     camera.quaternionCamera();

@@ -67,12 +67,26 @@ float Maths::radians(float angle)
 
 glm::mat4 Maths::rotate(const float& angle, glm::vec3 v)
 {
-    v = glm::normalize(v);
+    v = Maths::normalise(v);
     float c = cos(0.5f * angle);
     float s = sin(0.5f * angle);
     Quaternion q(c, s * v.x, s * v.y, s * v.z);
 
     return q.matrix();
+}
+
+glm::mat4 Maths::lookAt(glm::vec3 eye, glm::vec3 target, glm::vec3 worldUp)
+{
+    glm::vec3 cameraZ = Maths::normalise(eye - target);
+    glm::vec3 cameraX = Maths::normalise(Maths::cross(cameraZ, worldUp));
+    glm::vec3 cameraY = Maths::cross(cameraX, cameraZ);
+
+    glm::mat4 lookAtMatrix = { cameraX.x, cameraX.y, cameraX.z, 0.0f,
+    cameraY.x, cameraY.y, cameraY.z, 0.0f,
+    -cameraZ.x, -cameraZ.y, -cameraZ.z, 0.0f,
+    -Maths::dot(cameraY, eye), -Maths::dot(cameraZ, eye) , -Maths::dot(cameraX, eye), 0.0f};
+    
+    return lookAtMatrix;
 }
 
 // SLERP
@@ -113,6 +127,13 @@ float Maths::dot(glm::vec3 a, glm::vec3 b) {
 glm::vec3 Maths::cross(glm::vec3 a, glm::vec3 b) {
     glm::vec3 product = glm::vec3((a.y * b.z) - (a.z * b.y), (a.z * b.z) - (a.x * b.z), (a.x * b.y) - (a.y * b.x));
     return product;
+}
+
+glm::vec3 Maths::normalise(glm::vec3 a)
+{
+    float denominator = sqrt((a.x * a.x) + (a.y * a.y) + (a.z * a.z));
+
+    return glm::vec3((a.x / denominator), (a.y / denominator), (a.z / denominator));
 }
 
 //int length(glm::vec3 list)
