@@ -38,6 +38,9 @@ glm::vec3 positionVector;
 
 //Bools
 bool centralised = false;
+bool hasJumped = false;
+bool loggedYPos;
+bool startJumpHeight;
 
 //Ints
 int currentNum = 0;
@@ -48,6 +51,10 @@ int downPressed = 0;
 int leftPressed = 0;
 int rightPressed = 0;
 int lastPressed = 0;
+
+float jumpLength;
+float jumpPower;
+
 
 int main(void)
 {
@@ -134,6 +141,12 @@ int main(void)
     obelisk.ks = 1.0f;
     obelisk.Ns = 20.0f;
 
+    collisionBox.ka = 0.2f;
+    collisionBox.kd = 1.0f;
+    collisionBox.ks = 1.0f;
+    collisionBox.Ns = 20.0f;
+
+
     // obelisk positions
     glm::vec3 positions[] = { //X, Y, Z
         glm::vec3(0.0f,  0.0f, 4.0f),
@@ -150,7 +163,7 @@ int main(void)
     floor.addTexture("../assets/stones_normal.png", "normal");
     floor.addTexture("../assets/stones_specular.png", "specular");
 
-    collisionBox.addTexture("../assets/stones_normal.png", "normal");
+    collisionBox.addTexture("../assets/stones_diffuse.png", "diffuse");
 
     // Define floor light properties
     floor.ka = 0.2f;
@@ -198,9 +211,8 @@ int main(void)
 
     //Collision Box
     object.name = "collisionBox";
-    object.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-    object.scale = glm::vec3(0.2f, 0.5f, 0.2f);
-    //object.angle = Maths::radians(60.0f * i);
+    object.position = camera.eye;
+    object.scale = glm::vec3(0.2f, 0.2f, 0.2f);
     objects.push_back(object);
 
     object.name = "obelisk";
@@ -212,7 +224,7 @@ int main(void)
         object.angle = Maths::radians(60.0f * i);
         objects.push_back(object);
     }
-
+    
     object.name = "floor"; //init floor obj
     for (unsigned int i = 0; i < 1; i++)
     {
@@ -286,23 +298,30 @@ int main(void)
             // Draw the model
             if (objects[i].name == "collisionBox")
             {
-                objects[i].position = camera.eye;
+                objects[i].position = glm::vec3(camera.eye.x, camera.eye.y - 0.6f, camera.eye.z);
                 positionVector = objects[i].position;
-                if (positionVector.x >= -0.9f && positionVector.x <= 0.9f &&
-                    positionVector.z >= -0.9f && positionVector.z <= 0.9f) {
+                if (camera.eye.x >= -0.9f && camera.eye.x <= 0.9f &&
+                    camera.eye.z >= -0.9f && camera.eye.z <= 0.9f)
+                {
                     centralised = true;
                 }
                 else
                 {
                     centralised = false;
                 }
+                loggedYPos = objects[i].position.y * jumpPower;
+
+                if (useThirdPerson == true)
+                {
+                    collisionBox.draw(shaderID);
+                }
             }
             if (objects[i].name == "obelisk")
             {
-                if (objects[i].position.x + 2.5f > positionVector.x &&
-                    objects[i].position.x - 2.5f < positionVector.x &&
-                    objects[i].position.z + 2.5f > positionVector.z &&
-                    objects[i].position.z - 2.5f < positionVector.z)
+                if (objects[i].position.x + 2.5f > camera.eye.x &&
+                    objects[i].position.x - 2.5f < camera.eye.x &&
+                    objects[i].position.z + 2.5f > camera.eye.z &&
+                    objects[i].position.z - 2.5f < camera.eye.z)
                 {
 
                     if (objects[i].position.y < 3)
@@ -322,25 +341,11 @@ int main(void)
         }
         if (objects[i].name == "platform")
         {
-            if ((objects[i].position.x + 1.0f > positionVector.x &&
-                objects[i].position.x - 1.0f < positionVector.x &&
-                objects[i].position.z + 1.0f > positionVector.z &&
-                objects[i].position.z - 1.0f < positionVector.z))
-            {
-                //switch (lastPressed) {
-                //case 0:
-                //    camera.eye -= camera.front * 0.005f;
-                //    break;
-                //case 1:
-                //    camera.eye += camera.front * 0.005f;
-                //    break;
-                //case 2:
-                //    camera.eye += camera.right * 0.005f;
-                //    break;
-                //case 3:
-                //    camera.eye -= camera.right * 0.005f;
-                //    break;
-                //}  
+            if ((objects[i].position.x + 1.2f > camera.eye.x &&
+                objects[i].position.x - 1.2f < camera.eye.x &&
+                objects[i].position.z + 1.2f > camera.eye.z &&
+                objects[i].position.z - 1.2f < camera.eye.z) && camera.eye.y <= 1.2f)
+            {  
                 if (upPressed == 1) {
                     camera.eye -= camera.front * 0.01f, camera.up - 1.0f;
                 }
@@ -357,12 +362,15 @@ int main(void)
             platform.draw(shaderID);
         }
         }
+
+        //if (camera.eye.x)
         if (centralised == true) {
             lightSources.activated();
         }
         else
         {
             lightSources.deactivated();
+            //camera.eye.y -= 0.005f;
         }
         // Draw light sources
         lightSources.draw(lightShaderID, camera.view, camera.projection, sphere);
@@ -378,9 +386,7 @@ int main(void)
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        std::cout << camera.pitch;
-        //std::cout << lightSources.lightSources.size();
-        //std::cout << lightSources.lightSources[4].position;
+        //std::cout << loggedYPos;
     }
 
     // Cleanup
@@ -458,6 +464,26 @@ void keyboardInput(GLFWwindow* window)
 
     if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
         useThirdPerson = 1;
+
+    //SPACE - JUMP
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        if (hasJumped == false) {
+            startJumpHeight = camera.eye.y;
+            hasJumped = true;
+        }
+
+    if (hasJumped == true)
+    {
+        jumpLength = jumpLength + 0.0025f;
+        jumpPower = sin(jumpLength);
+        camera.eye.y = 0.8f + jumpPower;
+
+        if (camera.eye.y <= startJumpHeight)
+        {
+            hasJumped = false;
+            jumpLength = 0;
+        }
+    }
 }
 
 void mouseInput(GLFWwindow* window)
