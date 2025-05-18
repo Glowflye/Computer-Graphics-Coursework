@@ -64,7 +64,7 @@ glm::mat4 Camera::perspective(float fov, float aspect, float near, float far)
 }
 
 void Camera::thirdPersonCamera() {
-    glm::vec3 offset = glm::vec3(0.0f, -1.0f, -3.0f);
+    glm::vec3 offset = glm::vec3(up * 0.3f) + (front * 2.5f);
 
     //Calculate camera orientation quaternion from the Euler angles
     Quaternion newOrientation(-pitch, yaw);
