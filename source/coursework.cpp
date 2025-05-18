@@ -12,18 +12,18 @@
 #include <common/model.hpp>
 #include <common/light.hpp>
 
-// Function prototypes
+//Function prototypes
 void keyboardInput(GLFWwindow* window);
 void mouseInput(GLFWwindow* window);
 
-// Frame timers
+//Frame timer floats
 float previousTime = 0.0f;  // time of previous iteration of the loop
 float deltaTime = 0.0f;  // time elapsed since the previous frame
 
 // Create camera object
 Camera camera(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-// Object struct
+//Object struct
 struct Object
 {
     glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -33,7 +33,7 @@ struct Object
     std::string name;
 };
 
-//Position Vector
+//Position vector
 glm::vec3 positionVector;
 
 //Bools
@@ -52,15 +52,14 @@ int leftPressed = 0;
 int rightPressed = 0;
 int lastPressed = 0;
 
+//Floats
 float jumpLength;
 float jumpPower;
 
 
 int main(void)
 {
-    // =========================================================================
-    // Window creation - you shouldn't need to change this code
-    // -------------------------------------------------------------------------
+//--->          WINDOW CREATION         <---
     // Initialise GLFW
     if (!glfwInit())
     {
@@ -96,9 +95,7 @@ int main(void)
         glfwTerminate();
         return -1;
     }
-    // -------------------------------------------------------------------------
-    // End of window creation
-    // =========================================================================
+//--->          END WINDOW CREATION         <---
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
@@ -128,48 +125,10 @@ int main(void)
     Model collisionBox("../assets/cube.obj");
     Model platform("../assets/cube.obj");
 
-    // Load the textures
-    obelisk.addTexture("../assets/stones_diffuse.png", "diffuse");
-
+    //Platform textures/light properties
     platform.addTexture("../assets/neutral_specular.png", "specular");
     platform.addTexture("../assets/bricks_diffuse.png", "diffuse");
     platform.addTexture("../assets/bricks_normal.png", "normal");
-
-    // Define cube object lighting properties
-    obelisk.ka = 0.2f;
-    obelisk.kd = 1.0f;
-    obelisk.ks = 1.0f;
-    obelisk.Ns = 20.0f;
-
-    collisionBox.ka = 0.2f;
-    collisionBox.kd = 1.0f;
-    collisionBox.ks = 1.0f;
-    collisionBox.Ns = 20.0f;
-
-
-    // obelisk positions
-    glm::vec3 positions[] = { //X, Y, Z
-        glm::vec3(0.0f,  0.0f, 4.0f),
-        glm::vec3(-4.0f,  0.0f,  2.0f),
-        glm::vec3(-4.0f,  0.0f,  -2.0f),
-        glm::vec3(0.0f,  0.0f,  -4.0f),
-        glm::vec3(4.0f,  0.0f,  -2.0f),
-        glm::vec3(4.0f,  0.0f,  2.0f),
-    };
-
-    // Load a 2D plane model for the floor and add textures
-    Model floor("../assets/plane.obj");
-    floor.addTexture("../assets/stones_diffuse.png", "diffuse");
-    floor.addTexture("../assets/stones_normal.png", "normal");
-    floor.addTexture("../assets/stones_specular.png", "specular");
-
-    collisionBox.addTexture("../assets/stones_diffuse.png", "diffuse");
-
-    // Define floor light properties
-    floor.ka = 0.2f;
-    floor.kd = 1.0f;
-    floor.ks = 1.0f;
-    floor.Ns = 20.0f;
 
     //Define platform props
     platform.ka = 0.2f;
@@ -177,29 +136,63 @@ int main(void)
     platform.ks = 1.0f;
     platform.Ns = 20.0f;
 
+    //Obelisk textures, light properties and positions
+    obelisk.addTexture("../assets/stones_diffuse.png", "diffuse");
+
+    obelisk.ka = 0.2f;
+    obelisk.kd = 1.0f;
+    obelisk.ks = 1.0f;
+    obelisk.Ns = 20.0f;
+
+    glm::vec3 positions[] = { //X, Y, Z
+    glm::vec3(0.0f,  0.0f, 4.0f),
+    glm::vec3(-4.0f,  0.0f,  2.0f),
+    glm::vec3(-4.0f,  0.0f,  -2.0f),
+    glm::vec3(0.0f,  0.0f,  -4.0f),
+    glm::vec3(4.0f,  0.0f,  -2.0f),
+    glm::vec3(4.0f,  0.0f,  2.0f),
+    };
+
+    //Collision box textures/light properties
+    collisionBox.ka = 0.2f;
+    collisionBox.kd = 1.0f;
+    collisionBox.ks = 1.0f;
+    collisionBox.Ns = 20.0f;
+
+    collisionBox.addTexture("../assets/stones_diffuse.png", "diffuse");
+
+    //Floor textures/light properties
+    Model floor("../assets/plane.obj");
+    floor.addTexture("../assets/stones_diffuse.png", "diffuse");
+    floor.addTexture("../assets/stones_normal.png", "normal");
+    floor.addTexture("../assets/stones_specular.png", "specular");
+
+    floor.ka = 0.2f;
+    floor.kd = 1.0f;
+    floor.ks = 1.0f;
+    floor.Ns = 20.0f;
+
     // Add light sources
     Light lightSources;
 
+    //Spotlight
     lightSources.addSpotLight(glm::vec3(0.0f, 3.0f, 0.0f),          // position
         glm::vec3(0.0f, -1.0f, 0.0f),                               // direction
         glm::vec3(1.0f, 1.0f, 1.0f),                                // colour
         1.0f, 0.8f, 0.02f,                                          // attenuation
         std::cos(Maths::radians(60.0f)));                           // cos(phi)
 
+    //Pointlight from array
     std::array<int, 6> xPos = { 0.0f, -4.0f, -4.0f, 0.0f, 4.0f, 4.0f };
     std::array<int, 6> zPos = { 4.0f, 2.0f, -2.0f, -4.0f, -2.0f, 2.0f };
-
 
     for (int i = 0; i < 6; i++) {
         lightSources.addPointLight(glm::vec3((xPos[i]), -30, (zPos[i])),      // position
             glm::vec3(0.0f, 1.0f, 1.0f),                                      // colour
             0.002f, 20.0f, 0.002f);                                           // attenuation
     }
-    
-    //lightSources.addDirectionalLight(glm::vec3(1.0f, -1.0f, 0.0f),  // direction
-    //                                 glm::vec3(1.0f, 1.0f, 0.0f));  // colour
 
-    // Add teapots to objects vector
+    //Establish object vector
     std::vector<Object> objects;
     Object object;
 
@@ -215,8 +208,9 @@ int main(void)
     object.scale = glm::vec3(0.2f, 0.2f, 0.2f);
     objects.push_back(object);
 
+    //Obelisks
     object.name = "obelisk";
-    for (unsigned int i = 0; i < 6; i++) //change 1 later
+    for (unsigned int i = 0; i < 6; i++)
     {
         object.position = positions[i];
         object.rotation = glm::vec3(0.0f, 60.0f * (i), 1.0f);
@@ -225,7 +219,8 @@ int main(void)
         objects.push_back(object);
     }
     
-    object.name = "floor"; //init floor obj
+    //Floor
+    object.name = "floor";
     for (unsigned int i = 0; i < 1; i++)
     {
         // Add floor model to objects vector
@@ -237,68 +232,63 @@ int main(void)
         objects.push_back(object);
     }
 
-    // Render loop
+    //--->          RENDER LOOP         <---
     while (!glfwWindowShouldClose(window))
     {
+        //Ensure player can't float
         camera.eye.y = 0.0f;
-        // Update timer
+
+        //Update timer
         float time = glfwGetTime();
         deltaTime = time - previousTime;
         previousTime = time;
 
-        
-        //std::cout << glm::normalize((0.43f, 64.4, -1.434));
-        //std::cout << Maths::normalise(glm::vec3(0.43f, 64.4f, -1.434f));
-
-
-        // Get inputs
+        //Get inputs
         keyboardInput(window);
         mouseInput(window);
 
-        // Clear the window
+        //Clear the window
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Calculate view and projection matrices
+        //Calculate view and projection matrices
         camera.target = camera.eye + camera.front;
+
+        //Determine if first or third person camera is needed
         if (useThirdPerson == 0)
         {
             camera.quaternionCamera();
         }
-        else {
+        else
+        {
             camera.thirdPersonCamera();
         }
 
-        // Activate shader
+        //Activate shader
         glUseProgram(shaderID);
 
-        // Send light source properties to the shader
+        //Send light source properties to the shader
         lightSources.toShader(shaderID, camera.view);
 
-        //Get position
-
-        //// Send view matrix to the shader
-        //glUniformMatrix4fv(glGetUniformLocation(shaderID, "V"), 1, GL_FALSE, &camera.view[0][0]);
-
-        // Loop through objects
+        //Loop through objects
         for (unsigned int i = 0; i < static_cast<unsigned int>(objects.size()); i++)
         {
-            // Calculate model matrix
+            //Calculate model matrix
             glm::mat4 translate = Maths::translate(objects[i].position);
             glm::mat4 scale = Maths::scale(objects[i].scale);
             glm::mat4 rotate = Maths::rotate(objects[i].angle, objects[i].rotation);
             glm::mat4 model = translate * rotate * scale;
 
-            // Send the MVP and MV matrices to the vertex shader
+            //Send the MVP and MV matrices to the vertex shader
             glm::mat4 MV = camera.view * model;
             glm::mat4 MVP = camera.projection * MV;
             glUniformMatrix4fv(glGetUniformLocation(shaderID, "MVP"), 1, GL_FALSE, &MVP[0][0]);
             glUniformMatrix4fv(glGetUniformLocation(shaderID, "MV"), 1, GL_FALSE, &MV[0][0]);
 
-            // Draw the model
+            //Draw the models
             if (objects[i].name == "collisionBox")
             {
-                objects[i].position = glm::vec3(camera.eye.x, camera.eye.y - 0.6f, camera.eye.z);
+                objects[i].position = glm::vec3(camera.eye.x, camera.eye.y - 0.6f, camera.eye.z); //Check if player is centralised
                 positionVector = objects[i].position;
                 if (camera.eye.x >= -0.9f && camera.eye.x <= 0.9f &&
                     camera.eye.z >= -0.9f && camera.eye.z <= 0.9f)
@@ -309,7 +299,7 @@ int main(void)
                 {
                     centralised = false;
                 }
-                loggedYPos = objects[i].position.y * jumpPower;
+                loggedYPos = objects[i].position.y * jumpPower; //Grab current Y position
 
                 if (useThirdPerson == true)
                 {
@@ -318,7 +308,7 @@ int main(void)
             }
             if (objects[i].name == "obelisk")
             {
-                if (objects[i].position.x + 2.5f > camera.eye.x &&
+                if (objects[i].position.x + 2.5f > camera.eye.x && //Check if player is close
                     objects[i].position.x - 2.5f < camera.eye.x &&
                     objects[i].position.z + 2.5f > camera.eye.z &&
                     objects[i].position.z - 2.5f < camera.eye.z)
@@ -335,44 +325,43 @@ int main(void)
                 }
                 obelisk.draw(shaderID);
             }
-        if (objects[i].name == "floor")
-        {
-            floor.draw(shaderID);
-        }
-        if (objects[i].name == "platform")
-        {
-            if ((objects[i].position.x + 1.2f > camera.eye.x &&
-                objects[i].position.x - 1.2f < camera.eye.x &&
-                objects[i].position.z + 1.2f > camera.eye.z &&
-                objects[i].position.z - 1.2f < camera.eye.z) && camera.eye.y <= 1.2f)
-            {  
-                if (upPressed == 1) {
-                    camera.eye -= camera.front * 0.01f, camera.up - 1.0f;
-                }
-                if (downPressed == 1) {
-                    camera.eye += camera.front * 0.01f, camera.up - 1.0f;
-                }
-                if (leftPressed == 1) {
-                    camera.eye += camera.right * 0.01f, camera.up - 1.0f;
-                }
-                if (rightPressed == 1) {
-                    camera.eye -= camera.right * 0.01f, camera.up - 1.0f;
-                }
+            if (objects[i].name == "floor")
+            {
+                floor.draw(shaderID);
             }
-            platform.draw(shaderID);
-        }
+            if (objects[i].name == "platform")
+            {
+                if ((objects[i].position.x + 1.2f > camera.eye.x && //Check if player is colliding with platform
+                    objects[i].position.x - 1.2f < camera.eye.x &&
+                    objects[i].position.z + 1.2f > camera.eye.z &&
+                    objects[i].position.z - 1.2f < camera.eye.z) && camera.eye.y <= 1.2f)
+                {
+                    if (upPressed == 1) {
+                        camera.eye -= camera.front * 0.01f, camera.up - 1.0f;
+                    }
+                    if (downPressed == 1) {
+                        camera.eye += camera.front * 0.01f, camera.up - 1.0f;
+                    }
+                    if (leftPressed == 1) {
+                        camera.eye += camera.right * 0.01f, camera.up - 1.0f;
+                    }
+                    if (rightPressed == 1) {
+                        camera.eye -= camera.right * 0.01f, camera.up - 1.0f;
+                    }
+                }
+                platform.draw(shaderID);
+            }
         }
 
-        //if (camera.eye.x)
         if (centralised == true) {
             lightSources.activated();
         }
         else
         {
             lightSources.deactivated();
-            //camera.eye.y -= 0.005f;
         }
-        // Draw light sources
+
+        //Draw light sources
         lightSources.draw(lightShaderID, camera.view, camera.projection, sphere);
 
         if (camera.pitch > 1.20f) {
@@ -382,23 +371,25 @@ int main(void)
             camera.pitch = -0.5f;
         }
 
-        // Swap buffers
+        //Swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
-
-        //std::cout << loggedYPos;
     }
 
-    // Cleanup
-    //obelisk.deleteBuffers();
+    //Cleanup
     floor.deleteBuffers();
+    collisionBox.deleteBuffers();
+    obelisk.deleteBuffers();
+    platform.deleteBuffers();
+
     glDeleteProgram(shaderID);
 
-    // Close OpenGL window and terminate GLFW
+    //Close OpenGL window and terminate GLFW
     glfwTerminate();
     return 0;
 }
 
+//Check for keyboard input
 void keyboardInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -409,7 +400,7 @@ void keyboardInput(GLFWwindow* window)
         speed = 5;
     else speed = 1;
 
-    // Move the camera using WSAD keys
+    //Move the camera using WSAD keys
 
     //W - FORWARDS
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -486,17 +477,19 @@ void keyboardInput(GLFWwindow* window)
     }
 }
 
+//Check for mouse input
 void mouseInput(GLFWwindow* window)
 {
-    // Get mouse cursor position and reset to centre
+    //Get mouse cursor position and reset to centre
     double xPos, yPos;
     glfwGetCursorPos(window, &xPos, &yPos);
     glfwSetCursorPos(window, 1024 / 2, 768 / 2);
 
-    // Update yaw and pitch angles
+    //Update yaw and pitch angles
     camera.yaw += 0.005f * float(xPos - 1024 / 2);
     camera.pitch += 0.005f * float(768 / 2 - yPos);
 
+    //Limit camera pitch amount
     if (camera.pitch > 0.5f) {
         camera.pitch == 0.5f;
     }
@@ -504,7 +497,7 @@ void mouseInput(GLFWwindow* window)
         camera.pitch == -0.4f;
     }
 
-    // Calculate camera vectors from the yaw and pitch angles
+    //Calculate camera vectors from the yaw and pitch angles
     camera.quaternionCamera();
 }
 

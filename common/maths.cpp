@@ -89,24 +89,24 @@ glm::mat4 Maths::lookAt(glm::vec3 eye, glm::vec3 target, glm::vec3 worldUp)
     return lookAtMatrix;
 }
 
-// SLERP
+//SLERP
 Quaternion Maths::SLERP(Quaternion q1, Quaternion q2, const float t)
 {
-    // Calculate cos(theta)
+    //Calculate cos(theta)
     float cosTheta = q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q1.z * q2.z;
 
-    // If q1 and q2 are close together return q2 to avoid divide by zero errors
+    //If q1 and q2 are close together return q2 to avoid divide by zero errors
     if (cosTheta > 0.9999f)
         return q2;
 
-    // Avoid taking the long path around the sphere by reversing sign of q2
+    //Avoid taking the long path around the sphere by reversing sign of q2
     if (cosTheta < 0)
     {
         q2 = Quaternion(-q2.w, -q2.x, -q2.y, -q2.z);
         cosTheta = -cosTheta;
     }
 
-    // Calculate SLERP
+    //Calculate SLERP
     Quaternion q;
     float theta = acos(cosTheta);
     float a = sin((1.0f - t) * theta) / sin(theta);
@@ -119,21 +119,22 @@ Quaternion Maths::SLERP(Quaternion q1, Quaternion q2, const float t)
     return q;
 }
 
+//Dot product
 float Maths::dot(glm::vec3 a, glm::vec3 b) {
     float product = (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
     return product;
 }
 
+//Cross product
 glm::vec3 Maths::cross(glm::vec3 a, glm::vec3 b) {
     glm::vec3 product = glm::vec3((a.y * b.z) - (a.z * b.y), (a.z * b.z) - (a.x * b.z), (a.x * b.y) - (a.y * b.x));
     return product;
 }
 
+//Normalisation
 glm::vec3 Maths::normalise(glm::vec3 a)
 {
     float denominator = sqrt((a.x * a.x) + (a.y * a.y) + (a.z * a.z));
 
     return glm::vec3((a.x / denominator), (a.y / denominator), (a.z / denominator));
 }
-
-//int length(glm::vec3 list)

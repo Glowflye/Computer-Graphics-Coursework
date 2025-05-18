@@ -71,27 +71,28 @@ void Light::draw(unsigned int shaderID, glm::mat4 view, glm::mat4 projection, Mo
     glUseProgram(shaderID);
     for (unsigned int i = 0; i < static_cast<unsigned int>(lightSources.size()); i++)
     {
-            // Ignore directional lights
+            //Ignore directional lights
             if (lightSources[i].type == 3)
                 continue;
 
-            // Calculate model matrix
+            //Calculate model matrix
             glm::mat4 translate = Maths::translate(lightSources[i].position); //CHANGED
             glm::mat4 scale = Maths::scale(glm::vec3(0.1f)); //CHANGED
             glm::mat4 model = translate * scale;
 
-            // Send the MVP and MV matrices to the vertex shader
+            //Send the MVP and MV matrices to the vertex shader
             glm::mat4 MVP = projection * view * model;
             glUniformMatrix4fv(glGetUniformLocation(shaderID, "MVP"), 1, GL_FALSE, &MVP[0][0]);
 
-            // Send model, view, projection matrices and light colour to light shader
+            //Send model, view, projection matrices and light colour to light shader
             glUniform3fv(glGetUniformLocation(shaderID, "lightColour"), 1, &lightSources[i].colour[0]);
 
-            // Draw light source
+            //Draw light source
             lightModel.draw(shaderID);
     }
 }
 
+//Checks if lights need to change (based on where player is)
 void Light::activated() {
     active = true;
     for (unsigned int i = 0; i < static_cast<unsigned int>(lightSources.size()); i++)
@@ -116,26 +117,11 @@ void Light::deactivated() {
         if (lightSources[i].type == 1) {
             if (lightSources[i].position.y > -10) {
                 lightSources[i].position = glm::vec3(lightSources[i].position.x, lightSources[i].position.y - 0.05f, lightSources[i].position.z);
-                //lightSources[i].constant = 1.0f;
                 lightSources[i].linear = 20.8f;
-                //lightSources[i].quadratic = 0.02f;
             }
-            //if (lightSources[i].position.x)
         }
     }
 }
-
-//void Light::pointLightCirculate(glm::vec3 position) {
-//    switch (position) {
-//        case (0.0f, 3.0f, 4.0f) {
-//
-//        }
-//    }
-//
-//}
-//
-//std::array<int, 6> xPos = { 0.0f, -4.0f, -4.0f, 0.0f, 4.0f, 4.0f };
-//std::array<int, 6> zPos = { 4.0f, 2.0f, -2.0f, -4.0f, -2.0f, 2.0f };
 
 //NO GLM LEFT
 
